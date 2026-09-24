@@ -30,7 +30,9 @@
 const { useState, useEffect } = React;
 
 // Point this at your running Express server (see server.js, default port 5000)
-const API_BASE = 'http://localhost:5000/api';
+// const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://bu-training.vercel.app/api';
+
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
