@@ -106,3 +106,51 @@ exports.getMe = async (req, res) => {
     }
   });
 };
+
+// @route   PUT /api/auth/updateprofile
+// @desc    Logged-in user updates their OWN profile (name / email / password).
+//          Note: role is intentionally NOT editable here - a normal user
+//          cannot promote themselves to admin this way. Only an admin can
+//          change roles, via PUT /api/users/:id.
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Fetch with password included so pre-save hashing works correctly
+    const user = await User.findById(req.user._id).select('+password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (email && email !== user.email) {
+      const emailTaken = await User.findOne({ email });
+      if (emailTaken) {
+        return res.status(400).json({
+          success: false,
+          message: 'That email is already in use by another account'
+        });
+      }
+      user.email = email;
+    }
+
+    if (name) user.name = name;
+    if (password) user.password = password; // pre-save hook will re-hash it
+
+    // save() (not findByIdAndUpdate) so the pre-save password-hashing
+    // middleware and schema validators actually run
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
