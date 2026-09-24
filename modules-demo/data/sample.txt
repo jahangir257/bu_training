@@ -1,0 +1,2 @@
+Hello from the synchronous File System demo!
+This line was appended synchronously.
